@@ -44,7 +44,12 @@ class AssetUrlInterpreter implements InterpreterInterface
         $url = $context->getValue();
 
         if (filter_var($url, \FILTER_VALIDATE_URL) === false) {
-            throw new \InvalidArgumentException(sprintf('Provided asset URL value %1$s is not a valid URL', $url));
+			try{
+				throw new \InvalidArgumentException(sprintf('Provided asset URL value %1$s is not a valid URL', $url));
+			}catch(\Exception $e){
+				var_dump($e);
+				return null;
+			}
         }
         $parent = Asset\Service::createFolderByPath($path);
         $filename = $this->getFileName($url, $context->getConfiguration()['use_content_disposition'] ?? false);
@@ -57,7 +62,12 @@ class AssetUrlInterpreter implements InterpreterInterface
         $fileHash = null;
         $fileData = null;
         if ($asset === null) {
-            $fileData = $this->getFileContents($url);
+			try{
+				$fileData = $this->getFileContents($url);
+			}catch(\Exception $e){
+				var_dump($e);
+				return null;
+			}
             $fileHash = md5($fileData);
 
             if ($context->getConfiguration()['deduplicate_by_hash'] ?? false) {
@@ -172,7 +182,7 @@ class AssetUrlInterpreter implements InterpreterInterface
             $listing->addConditionParam('am.data = ?', $value);
         }
         $listing->setLimit(1);
-        $listing->setOrder(['creationDate', 'desc']);
+        //$listing->setOrder(['creationDate', 'desc']);
 
         $duplicatedAssets = $listing->getAssets();
 

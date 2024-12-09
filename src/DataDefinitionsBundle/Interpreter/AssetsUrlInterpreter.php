@@ -22,8 +22,16 @@ class AssetsUrlInterpreter extends AssetUrlInterpreter
 {
     public function interpret(InterpreterContextInterface $context): mixed
     {
+		$val = $context->getValue();
+		if(!is_array($val)){
+			$val = explode(',',$val);
+		}
+		$val = (array)$val;
         $assets = [];
-        foreach ((array) $context->getValue() as $item) {
+        foreach ($val as $item) {
+			if(!$item){
+				continue;
+			}
             $childContext = new InterpreterContext(
                 $context->getDefinition(),
                 $context->getParams(),
@@ -40,6 +48,20 @@ class AssetsUrlInterpreter extends AssetUrlInterpreter
                 $assets[] = $asset;
             }
         }
+		if(!count($assets)){
+			return null;
+		}
+		if($context->getMapping()->toColumn == 'galleria_img'){
+			$items = [];
+			foreach($assets as $img){
+
+			   $advancedImage = new \Pimcore\Model\DataObject\Data\Hotspotimage();
+			   $advancedImage->setImage($img);
+			   $items[] = $advancedImage;
+			}
+			return new \Pimcore\Model\DataObject\Data\ImageGallery($items);
+		}
+
 
         return $assets ?: null;
     }
